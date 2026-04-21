@@ -1,11 +1,19 @@
 import { useState } from 'react';
 
 const STATUSES = ['Pending', 'In Progress', 'Completed'];
+const DEFAULT_FORM = { title: '', description: '', status: 'Pending', dueDate: '' };
 
 export default function TaskModal({ task, onSave, onClose, embedded = false }) {
   const isEdit = !!task?.id;
-  const [form, setForm] = useState(task || { title: '', description: '', status: 'Pending', dueDate: '' });
+  const originalForm = { ...DEFAULT_FORM, ...(task || {}) };
+  const [form, setForm] = useState(originalForm);
   const [errors, setErrors] = useState({});
+  const hasEditChanges = isEdit && (
+    form.title !== originalForm.title ||
+    form.description !== originalForm.description ||
+    form.status !== originalForm.status ||
+    form.dueDate !== originalForm.dueDate
+  );
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -49,7 +57,7 @@ export default function TaskModal({ task, onSave, onClose, embedded = false }) {
 
       <div className="modal-actions">
         <button className="btn" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={submit}>{isEdit ? 'Save changes' : 'Add task'}</button>
+        <button className="btn btn-primary" onClick={submit} disabled={isEdit && !hasEditChanges}>{isEdit ? 'Save changes' : 'Add task'}</button>
       </div>
     </>
   );
