@@ -58,7 +58,7 @@ const tasksSlice = createSlice({
   },
 });
 
-export const { addTask, updateTask, deleteTask, setFilterStatus, setSortDir, setSearch } = tasksSlice.actions;
+export const { addTask, updateTask, deleteTask, setFilterStatus, setSortDir, setSearch,handleSortAlphabeticallyChange } = tasksSlice.actions;
 
 // Selectors
 export const selectFilteredTasks = (statusOverride) => (state) => {
@@ -74,6 +74,13 @@ export const selectFilteredTasks = (statusOverride) => (state) => {
   return [...result].sort((a, b) => {
     const diff = new Date(a.dueDate) - new Date(b.dueDate);
     return sortDir === 'asc' ? diff : -diff;
+  });
+
+};
+
+export const sortalphabetically = (tasks, sortDir) => {
+  return [...tasks].sort((a, b) => {
+    return sortDir === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
   });
 };
 

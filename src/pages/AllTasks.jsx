@@ -5,7 +5,7 @@ import useTaskCardActions from '../hooks/useTaskCardActions';
 import {
   addTask, updateTask, deleteTask,
   setFilterStatus, setSortDir, setSearch,
-  selectFilteredTasks, selectCounts,
+  selectFilteredTasks, selectCounts,sortalphabetically 
 } from '../store/tasksSlice';
 import TaskCard from '../components/TaskCard';
 import StatCard from '../components/StatCard';
@@ -45,6 +45,8 @@ export default function AllTasks() {
   const handleSearchChange = useCallback((e) => setSearchText(e.target.value), []);
   const handleFilterChange = useCallback((e) => dispatch(setFilterStatus(e.target.value)), [dispatch]);
   const handleSortChange = useCallback((e) => dispatch(setSortDir(e.target.value)), [dispatch]);
+  const handleSortAlphabeticallyChange = useCallback((e) => dispatch(sortalphabetically(e.target.value)), [dispatch]);
+  console.log("i am good");
 
   const summaryStats = useMemo(() => (
     STATS_CONFIG.map((stat) => ({
@@ -90,6 +92,11 @@ export default function AllTasks() {
         <select value={sortDir} onChange={handleSortChange}>
           <option value="asc">Due: earliest first</option>
           <option value="desc">Due: latest first</option>
+        </select>
+
+        <select value={sortDir} onChange={handleSortAlphabeticallyChange}>
+          <option value="asc">Alphabetical: A-Z</option>
+          <option value="desc">Alphabetical: Z-A</option>
         </select>
         <span className="spacer" />
         <button className="btn btn-primary" onClick={openAddTaskModal}>+ Add task</button>
