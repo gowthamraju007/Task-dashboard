@@ -30,6 +30,7 @@ const tasksSlice = createSlice({
     filterStatus: 'All',
     sortDir: 'asc',
     search: '',
+    sortMode: 'date', // 'date' or 'alphabetical'
   },
   reducers: {
     addTask(state, action) {
@@ -55,14 +56,17 @@ const tasksSlice = createSlice({
     setSearch(state, action) {
       state.search = action.payload;
     },
+    setSortMode(state, action) {
+      state.sortMode = action.payload;
+    },
   },
 });
 
-export const { addTask, updateTask, deleteTask, setFilterStatus, setSortDir, setSearch,handleSortAlphabeticallyChange } = tasksSlice.actions;
+export const { addTask, updateTask, deleteTask, setFilterStatus, setSortDir, setSearch, setSortMode } = tasksSlice.actions;
 
 // Selectors
 export const selectFilteredTasks = (statusOverride) => (state) => {
-  const { items, filterStatus, sortDir, search } = state.tasks;
+  const { items, filterStatus, sortDir, search, sortMode } = state.tasks;
   const activeStatus = statusOverride || filterStatus;
 
   let result = items.filter(t => {
@@ -71,11 +75,16 @@ export const selectFilteredTasks = (statusOverride) => (state) => {
     return true;
   });
 
+  // Sort based on sortMode
+  if (sortMode === 'alphabetical') {
+    return sortalphabetically(result, sortDir);
+  }
+
+  // Default: sort by due date
   return [...result].sort((a, b) => {
     const diff = new Date(a.dueDate) - new Date(b.dueDate);
     return sortDir === 'asc' ? diff : -diff;
   });
-
 };
 
 export const sortalphabetically = (tasks, sortDir) => {

@@ -4,8 +4,8 @@ import useDebounce from '../hooks/useDebounce';
 import useTaskCardActions from '../hooks/useTaskCardActions';
 import {
   addTask, updateTask, deleteTask,
-  setFilterStatus, setSortDir, setSearch,
-  selectFilteredTasks, selectCounts,sortalphabetically 
+  setFilterStatus, setSortDir, setSearch, setSortMode,
+  selectFilteredTasks, selectCounts
 } from '../store/tasksSlice';
 import TaskCard from '../components/TaskCard';
 import StatCard from '../components/StatCard';
@@ -15,7 +15,7 @@ import { STATS_CONFIG, STATUSES } from '../constants/taskConstants';
 
 export default function AllTasks() {
   const dispatch = useDispatch();
-  const { filterStatus, sortDir, search } = useSelector(s => s.tasks);
+  const { filterStatus, sortDir, search, sortMode } = useSelector(s => s.tasks);
   const tasks = useSelector(selectFilteredTasks());
   const counts = useSelector(selectCounts);
   const [searchText, setSearchText] = useState(search);
@@ -45,7 +45,7 @@ export default function AllTasks() {
   const handleSearchChange = useCallback((e) => setSearchText(e.target.value), []);
   const handleFilterChange = useCallback((e) => dispatch(setFilterStatus(e.target.value)), [dispatch]);
   const handleSortChange = useCallback((e) => dispatch(setSortDir(e.target.value)), [dispatch]);
-  const handleSortAlphabeticallyChange = useCallback((e) => dispatch(sortalphabetically(e.target.value)), [dispatch]);
+  const handleSortModeChange = useCallback((e) => dispatch(setSortMode(e.target.value)), [dispatch]);
   console.log("i am good");
 
   const summaryStats = useMemo(() => (
@@ -94,9 +94,9 @@ export default function AllTasks() {
           <option value="desc">Due: latest first</option>
         </select>
 
-        <select value={sortDir} onChange={handleSortAlphabeticallyChange}>
-          <option value="asc">Alphabetical: A-Z</option>
-          <option value="desc">Alphabetical: Z-A</option>
+        <select value={sortMode} onChange={handleSortModeChange}>
+          <option value="date">Sort by due date</option>
+          <option value="alphabetical">Sort alphabetically</option>
         </select>
         <span className="spacer" />
         <button className="btn btn-primary" onClick={openAddTaskModal}>+ Add task</button>
