@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import useDebounce from '../hooks/useDebounce';
 import useTaskCardActions from '../hooks/useTaskCardActions';
 import {
-  addTask, updateTask, deleteTask,
+  createTask, editTask, removeTask,
   setFilterStatus, setSortDir, setSearch, setSortMode,
   selectFilteredTasks, selectCounts
 } from '../store/tasksSlice';
@@ -22,12 +22,12 @@ export default function AllTasks() {
   const debouncedSearchText = useDebounce(searchText, 300);
 
   const onSaveTask = useCallback((form) => {
-    if (form.id) dispatch(updateTask(form));
-    else dispatch(addTask(form));
+    if (form.id) dispatch(editTask(form));
+    else dispatch(createTask(form));
   }, [dispatch]);
 
   const onDeleteTask = useCallback((id) => {
-    dispatch(deleteTask(id));
+    dispatch(removeTask(id));
   }, [dispatch]);
 
   const {
@@ -46,7 +46,6 @@ export default function AllTasks() {
   const handleFilterChange = useCallback((e) => dispatch(setFilterStatus(e.target.value)), [dispatch]);
   const handleSortChange = useCallback((e) => dispatch(setSortDir(e.target.value)), [dispatch]);
   const handleSortModeChange = useCallback((e) => dispatch(setSortMode(e.target.value)), [dispatch]);
-  console.log("i am good");
 
   const summaryStats = useMemo(() => (
     STATS_CONFIG.map((stat) => ({

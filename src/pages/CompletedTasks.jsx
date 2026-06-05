@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateTask, deleteTask, selectFilteredTasks } from '../store/tasksSlice';
+import { editTask, removeTask, selectFilteredTasks } from '../store/tasksSlice';
 import TaskCard from '../components/TaskCard';
 import TaskActionModals from '../components/TaskActionModals';
 import useTaskCardActions from '../hooks/useTaskCardActions';
@@ -10,11 +10,11 @@ export default function CompletedTasks() {
   const tasks = useSelector(selectFilteredTasks('Completed'));
 
   const onSaveTask = useCallback((form) => {
-    dispatch(updateTask(form));
+    dispatch(editTask(form));
   }, [dispatch]);
 
   const onDeleteTask = useCallback((id) => {
-    dispatch(deleteTask(id));
+    dispatch(removeTask(id));
   }, [dispatch]);
 
   const {

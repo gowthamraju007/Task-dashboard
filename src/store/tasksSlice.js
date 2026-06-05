@@ -1,52 +1,23 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import * as taskApi from '../services/taskApi';
 
-const SAMPLE_TASKS = [
-  { id: 1, title: 'Design system audit', description: 'Review all UI components for consistency.', status: 'Completed', dueDate: '2025-04-10' },
-  { id: 2, title: 'Fix login page bug', description: 'Users are unable to reset password on mobile.', status: 'In Progress', dueDate: '2025-04-22' },
-  { id: 3, title: 'Write unit tests', description: 'Cover the auth module with at least 80% coverage.', status: 'Pending', dueDate: '2025-04-30' },
-  { id: 4, title: 'Deploy staging build', description: 'Push the latest changes to the staging server.', status: 'Pending', dueDate: '2025-04-25' },
-  { id: 5, title: 'Code review PR #42', description: "Review the pull request for the dashboard feature.", status: 'In Progress', dueDate: '2025-04-21' },
-];
-
-function loadFromStorage() {
-  try {
-    const saved = localStorage.getItem('tm_tasks');
-    return saved ? JSON.parse(saved) : SAMPLE_TASKS;
-  } catch {
-    return SAMPLE_TASKS;
-  }
-}
-
-function saveToStorage(tasks) {
-  try {
-    localStorage.setItem('tm_tasks', JSON.stringify(tasks));
-  } catch {}
-}
+export const loadTasks = createAsyncThunk('tasks/load', () => taskApi.fetchTasks());
+export const createTask = createAsyncThunk('tasks/create', (task) => taskApi.createTask(task));
+export const editTask = createAsyncThunk('tasks/edit', (task) => taskApi.updateTaskApi(task));
+export const removeTask = createAsyncThunk('tasks/remove', (id) => taskApi.deleteTaskApi(id));
 
 const tasksSlice = createSlice({
   name: 'tasks',
   initialState: {
-    items: loadFromStorage(),
+    items: [],
+    loading: false,
+    error: null,
     filterStatus: 'All',
     sortDir: 'asc',
     search: '',
-    sortMode: 'date', // 'date' or 'alphabetical'
+    sortMode: 'date',
   },
   reducers: {
-    addTask(state, action) {
-      const newTask = { ...action.payload, id: Date.now() };
-      state.items.push(newTask);
-      saveToStorage(state.items);
-    },
-    updateTask(state, action) {
-      const idx = state.items.findIndex(t => t.id === action.payload.id);
-      if (idx !== -1) state.items[idx] = action.payload;
-      saveToStorage(state.items);
-    },
-    deleteTask(state, action) {
-      state.items = state.items.filter(t => t.id !== action.payload);
-      saveToStorage(state.items);
-    },
     setFilterStatus(state, action) {
       state.filterStatus = action.payload;
     },
@@ -60,11 +31,44 @@ const tasksSlice = createSlice({
       state.sortMode = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadTasks.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loadTasks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(loadTasks.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(createTask.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+      })
+      .addCase(createTask.rejected, (state, action) => {
+        state.error = action.error.message;
+      })
+      .addCase(editTask.fulfilled, (state, action) => {
+        const idx = state.items.findIndex(t => t.id === action.payload.id);
+        if (idx !== -1) state.items[idx] = action.payload;
+      })
+      .addCase(editTask.rejected, (state, action) => {
+        state.error = action.error.message;
+      })
+      .addCase(removeTask.fulfilled, (state, action) => {
+        state.items = state.items.filter(t => t.id !== action.meta.arg);
+      })
+      .addCase(removeTask.rejected, (state, action) => {
+        state.error = action.error.message;
+      });
+  },
 });
 
-export const { addTask, updateTask, deleteTask, setFilterStatus, setSortDir, setSearch, setSortMode } = tasksSlice.actions;
+export const { setFilterStatus, setSortDir, setSearch, setSortMode } = tasksSlice.actions;
 
-// Selectors
 export const selectFilteredTasks = (statusOverride) => (state) => {
   const { items, filterStatus, sortDir, search, sortMode } = state.tasks;
   const activeStatus = statusOverride || filterStatus;
@@ -75,12 +79,10 @@ export const selectFilteredTasks = (statusOverride) => (state) => {
     return true;
   });
 
-  // Sort based on sortMode
   if (sortMode === 'alphabetical') {
     return sortalphabetically(result, sortDir);
   }
 
-  // Default: sort by due date
   return [...result].sort((a, b) => {
     const diff = new Date(a.dueDate) - new Date(b.dueDate);
     return sortDir === 'asc' ? diff : -diff;
